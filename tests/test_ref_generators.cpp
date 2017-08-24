@@ -17,9 +17,52 @@
  * Created by Matt Spraggs on 24/08/17
  */
 
+#include <ConstRefGenerator.hpp>
 #include <GenericRefGenerator.hpp>
 
 #include "helpers.hpp"
+
+
+TEST_CASE("Test ConstRefGenerator")
+{
+  using namespace ascendancy;
+
+  Vec<2> value(3.2, 1.1);
+
+  ConstRefGenerator<2> ref_generator(value, 100);
+
+  SECTION("Test serialise")
+  {
+    const auto data = ref_generator.serialise();
+
+    const std::vector<char> expected{
+        0x0, 0x0, 0x0, 0x64,
+        0x40, 0x9, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66,
+        0x3f, -0xf, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66};
+
+    REQUIRE(data == expected);
+  }
+
+  SECTION("Test deserialise")
+  {
+    const std::vector<char> data{
+        0x0, 0x0, 0x0, 0x10,
+        0x40, 0x9, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66,
+        0x3f, -0x10, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+
+    ref_generator.deserialise(data);
+
+    Vec<2> expected_ref(3.2, 1.0);
+
+    REQUIRE(ref_generator.get_num_samples() == 16);
+    REQUIRE(ref_generator.get_reference(0) == ascendancy::Approx(expected_ref));
+  }
+
+  SECTION("Test get_reference")
+  {
+    REQUIRE(ref_generator.get_reference(0) == ascendancy::Approx(value));
+  }
+}
 
 
 TEST_CASE("Test GenericRefGenerator")

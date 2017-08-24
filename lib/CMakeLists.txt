@@ -21,6 +21,7 @@ project(ascendancy++)
 
 set(SRC
   Algorithm.hpp
+  ConstRefGenerator.hpp
   Controller.hpp
   ControlSystem.hpp
   DataStore.hpp
