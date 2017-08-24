@@ -28,6 +28,7 @@ set(SRC
   test_control_system.cpp
   test_controllers.cpp
   test_main.cpp
+  test_ref_generators.cpp
   test_state_space.cpp
   test_serialisation.cpp)
 

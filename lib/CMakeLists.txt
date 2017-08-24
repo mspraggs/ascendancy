@@ -25,6 +25,7 @@ set(SRC
   ControlSystem.hpp
   DataStore.hpp
   GenericLiftedAlgorithm.hpp
+  GenericRefGenerator.hpp
   globals.hpp
   Logger.hpp
   NonCausalAlgorithm.hpp
