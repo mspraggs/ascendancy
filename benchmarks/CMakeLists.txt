@@ -19,8 +19,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(ascendancy++)
 
-set(SRC
-  bench_control_system.cpp)
+add_executable(bench_control_system bench_control_system.cpp)
+target_link_libraries(bench_control_system ascendancy++)
 
 add_executable(run_benchmarks ${SRC})
 target_link_libraries(run_benchmarks ascendancy++)
