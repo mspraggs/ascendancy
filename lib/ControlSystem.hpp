@@ -480,6 +480,21 @@ namespace ascendancy
 
     logger_->write(LogLevel::Info, "Finished running algorithm!");
 
+    // Compute some real-time thread time-keeping statistics
+
+    const double min_duration =
+        *std::min_element(durations.begin(), durations.end());
+    const double mean_duration =
+        std::accumulate(durations.begin(), durations.end(), 0.0)
+            / durations.size();
+    const double max_duration =
+        *std::max_element(durations.begin(), durations.end());
+
+    logger_->write(LogLevel::Info, "Real-time step duration stats:");
+    logger_->write(LogLevel::Info, "Minimum duration = ", min_duration);
+    logger_->write(LogLevel::Info, "Mean duration    = ", mean_duration);
+    logger_->write(LogLevel::Info, "Maximum duration = ", max_duration);
+
     // Third: Restore memory state (unlocked) ----------------------------------
 
     logger_->write(LogLevel::Info, "Unlocking memory pages from RAM...");
