@@ -22,5 +22,5 @@ project(ascendancy++)
 add_executable(bench_control_system bench_control_system.cpp)
 target_link_libraries(bench_control_system ascendancy++)
 
-add_executable(run_benchmarks ${SRC})
-target_link_libraries(run_benchmarks ascendancy++)
+add_executable(bench_generic_lifted_algorithm bench_generic_lifted_algorithm.cpp)
+target_link_libraries(bench_generic_lifted_algorithm ascendancy++)
