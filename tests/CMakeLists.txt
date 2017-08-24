@@ -20,23 +20,16 @@ cmake_minimum_required(VERSION 2.8)
 project(ascendancy++)
 
 set(SRC
-  Algorithm.hpp
-  Controller.hpp
-  ControlSystem.hpp
-  DataStore.hpp
-  GenericLiftedAlgorithm.hpp
-  globals.hpp
-  Logger.hpp
-  NonCausalAlgorithm.hpp
-  PIDController.hpp
-  StateSpace.hpp
-  RefGenerator.hpp
-  serialisation.hpp
-  utils.hpp
+  catch.hpp
+  helpers.hpp
+  TestRefGen.hpp
 
-  Logger.cpp
-  serialisation.cpp
-  utils.cpp)
+  test_algorithms.cpp
+  test_control_system.cpp
+  test_controllers.cpp
+  test_main.cpp
+  test_state_space.cpp
+  test_serialisation.cpp)
 
-add_library(ascendancy++ SHARED ${SRC})
-target_link_libraries(ascendancy++ pthread)
+add_executable(run_tests ${SRC})
+target_link_libraries(run_tests ascendancy++ pthread)

@@ -19,24 +19,15 @@
 cmake_minimum_required(VERSION 2.8)
 project(ascendancy++)
 
-set(SRC
-  Algorithm.hpp
-  Controller.hpp
-  ControlSystem.hpp
-  DataStore.hpp
-  GenericLiftedAlgorithm.hpp
-  globals.hpp
-  Logger.hpp
-  NonCausalAlgorithm.hpp
-  PIDController.hpp
-  StateSpace.hpp
-  RefGenerator.hpp
-  serialisation.hpp
-  utils.hpp
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-  Logger.cpp
-  serialisation.cpp
-  utils.cpp)
+find_package(Eigen3 3.0 REQUIRED)
 
-add_library(ascendancy++ SHARED ${SRC})
-target_link_libraries(ascendancy++ pthread)
+include_directories(lib ${EIGEN3_INCLUDE_DIR})
+
+set(CMAKE_CXX_FLAGS
+  "-g -Wall -Wextra -Wnon-virtual-dtor -pedantic -std=c++11 ${CMAKE_CXX_FLAGS}")
+
+add_subdirectory(lib)
+add_subdirectory(benchmarks)
+add_subdirectory(tests)
