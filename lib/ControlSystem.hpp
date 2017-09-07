@@ -110,6 +110,8 @@ namespace ascendancy
     const T& get_ref_generator() const
     { return *static_cast<T*>(ref_generator_.get()); }
 
+    unsigned int get_frequency() const { return frequency_; }
+
     bool has_valid_state() const { return not dirty_; }
 
     void erase_algorithm(const unsigned int id);
