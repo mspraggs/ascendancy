@@ -79,7 +79,7 @@ namespace ascendancy
 
     template <typename Src, typename Snk>
     bool run(const unsigned int algorithm_id, const DataStore& parameters,
-             const Src& src, Snk& sink);
+             Src& src, Snk& sink);
     void stop() { thread_running_ = false; }
 
     bool is_busy() const { return thread_running_; }
@@ -122,7 +122,7 @@ namespace ascendancy
     template <typename Src, typename Snk>
     void run_internal(const std::size_t algorithm_idx,
                       const DataStore& parameters,
-                      const Src& src, Snk& sink);
+                      Src& src, Snk& sink);
 
     std::atomic_bool thread_running_, dirty_;
     std::thread rt_thread_;
@@ -187,7 +187,7 @@ namespace ascendancy
   template <typename Src, typename Snk>
   bool ControlSystem<NIn, NOut>::run(const unsigned int algorithm_id,
                                      const DataStore& parameters,
-                                     const Src& src, Snk& sink)
+                                     Src& src, Snk& sink)
   {
     // Check if the thread is already running, and stop here if it is
     if (thread_running_) {
@@ -385,7 +385,7 @@ namespace ascendancy
   template <typename Src, typename Snk>
   void ControlSystem<NIn, NOut>::run_internal(
       const std::size_t algorithm_idx, const DataStore& parameters,
-      const Src& src, Snk& sink)
+      Src& src, Snk& sink)
   {
     logger_->write(LogLevel::Info,
                    "Checking for algorithm and reference generator...");
