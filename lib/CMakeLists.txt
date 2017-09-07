@@ -19,7 +19,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(ascendancy++)
 
-set(SRC
+set(HEADERS
   Algorithm.hpp
   ConstRefGenerator.hpp
   Controller.hpp
@@ -34,11 +34,15 @@ set(SRC
   StateSpace.hpp
   RefGenerator.hpp
   serialisation.hpp
-  utils.hpp
+  utils.hpp)
 
+set(SOURCES
   Logger.cpp
   serialisation.cpp
   utils.cpp)
 
-add_library(ascendancy++ SHARED ${SRC})
+add_library(ascendancy++ SHARED ${HEADERS} ${SOURCES})
 target_link_libraries(ascendancy++ pthread)
+
+install(FILES ${HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ascendancy")
+install(TARGETS ascendancy++ LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

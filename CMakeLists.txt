@@ -25,6 +25,8 @@ find_package(Eigen3 3.0 REQUIRED)
 
 include_directories(lib ${EIGEN3_INCLUDE_DIR})
 
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_FLAGS
   "-g -Wall -Wextra -Wnon-virtual-dtor -pedantic -std=c++11 ${CMAKE_CXX_FLAGS}")
 
