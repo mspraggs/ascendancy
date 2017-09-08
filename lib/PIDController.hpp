@@ -28,9 +28,10 @@ namespace ascendancy
   class PIDController : public Controller<NIn, NOut>
   {
   public:
-    template <typename std::enable_if<NIn == 1 and NOut == 1>::type* = nullptr>
     PIDController(const double kp, const double ki, const double kd)
     {
+      static_assert(NIn == 1 and NOut == 1,
+                    "Need NIn == 1 and NOut == 1 for scalar constructor");
       kp_.setConstant(kp);
       ki_.setConstant(ki);
       kd_.setConstant(kd);
