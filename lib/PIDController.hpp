@@ -49,6 +49,10 @@ namespace ascendancy
 
     Vec<NOut> compute_output(const Vec<NIn>& input) override;
 
+    void set_proportional_gain(const Mat<NOut, NIn>& kp) { kp_ = kp; }
+    void set_integral_gain(const Mat<NOut, NIn>& ki) { ki_ = ki; }
+    void set_derivative_gain(const Mat<NOut, NIn>& kd) { kd_ = kd; }
+
   private:
     Mat<NOut, NIn> kp_, ki_, kd_;
     Vec<NIn> prev_err_, integral_;
