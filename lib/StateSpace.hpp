@@ -43,6 +43,7 @@ namespace ascendancy
         : StateSpace(A, B, C, Mat<NOut, NIn>::Zero())
     {}
 
+    const Vec<NStates>& get_state() const { return x_; }
     void set_state(const Vec<NStates>& state) { x_ = state; }
 
     void reset() { set_state(Vec<NStates>::Zero()); }
