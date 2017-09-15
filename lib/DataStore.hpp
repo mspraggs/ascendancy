@@ -57,6 +57,9 @@ namespace ascendancy
 
   public:
     template <typename T>
+    bool has_value() const
+    { return mapping_.count(std::type_index(typeid(T))) == 1; }
+    template <typename T>
     void set(T value);
     template <typename T>
     const T& get() const;
