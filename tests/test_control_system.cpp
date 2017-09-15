@@ -57,9 +57,6 @@ public:
     total += inputs[samp_num];
   }
 
-  virtual Vec<10> get_ref_correction(const unsigned int samp_num)
-  { return Vec<10>::Zero(); }
-
   void finish() override
   {
     half_total = total / 2.0;
