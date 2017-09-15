@@ -45,6 +45,53 @@ private:
 };
 
 
+class SubjectAlgorithm : public ascendancy::Algorithm<1, 1>
+{
+public:
+  void do_notify(const ascendancy::DataStore& data)
+  {
+    notify_observers(data);
+  }
+
+  void notify(const ascendancy::DataStore& data) override
+  {
+    if (data.has_value<int>()) {
+      value_ = data.get<int>();
+    }
+  }
+
+  int get_value() const { return value_; }
+
+private:
+  int value_;
+};
+
+
+TEST_CASE("Test Observer/Subject")
+{
+  using namespace ascendancy;
+
+  SubjectAlgorithm algorithm1, algorithm2;
+
+  int value = 0;
+
+  auto observer_func =
+      [&algorithm2, &value] (const DataStore& data) {
+        value = data.get<int>();
+        algorithm2.notify(data);
+      };
+
+  DataStore data;
+  data.set(5);
+
+  algorithm1.subscribe(0, observer_func);
+  algorithm1.do_notify(data);
+
+  REQUIRE(value == 5);
+  REQUIRE(algorithm2.get_value() == 5);
+}
+
+
 TEST_CASE("Test NonCausalAlgorithm")
 {
   using namespace ascendancy;

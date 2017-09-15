@@ -32,6 +32,8 @@ namespace ascendancy
     // This class defines a base class that can be passed to a ControlSystem
     // object. The latter can then use the former in its run_internal function.
   public:
+    using ObserverType = std::function<void(const DataStore&)>;
+
     virtual ~Algorithm() = default;
 
     // Specifies the setup stage of the algorithm
@@ -46,7 +48,58 @@ namespace ascendancy
 
     // Specifies the finalisation step of the algorithm.
     virtual void finish() {}
+
+    virtual void notify(const DataStore& data) {}
+
+    void subscribe(const unsigned int id, ObserverType func);
+
+    void unsubscribe(const unsigned int id);
+
+  protected:
+    template <typename... Ts>
+    void notify_observers(Ts&&... args)
+    {
+      for (auto& func : observers_) {
+        func(std::forward<Ts>(args)...);
+      }
+    }
+
+  private:
+    std::vector<ObserverType> observers_;
+    std::unordered_map<unsigned int, std::size_t> id_map_;
   };
+
+
+  template <unsigned int NIn, unsigned int NOut>
+  void Algorithm<NIn, NOut>::subscribe(const unsigned int id,
+                                       Algorithm::ObserverType func)
+  {
+    if (id_map_.count(id) == 0) {
+      observers_.push_back(func);
+      id_map_[id] = observers_.size() - 1;
+    }
+  }
+
+
+  template <unsigned int NIn, unsigned int NOut>
+  void Algorithm<NIn, NOut>::unsubscribe(const unsigned int id)
+  {
+    if (id_map_.count(id) == 0) {
+      return;
+    }
+
+    auto idx = id_map_[id];
+
+    if (idx < observers_.size()) {
+      observers_.erase(observers_.begin() + idx);
+
+      for (auto& pair : id_map_) {
+        if (pair.second >= idx) {
+          pair.second--;
+        }
+      }
+    }
+  }
 }
 
 #endif //ASCENDANCY_ALGORITHM_HPP
