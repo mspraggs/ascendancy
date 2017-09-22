@@ -429,6 +429,10 @@ namespace ascendancy
 
     auto& algorithm = *algorithms_[algorithm_idx];
 
+    if (not thread_running_) {
+      return;
+    }
+
     algorithm.setup(parameters);
 
     // Prepare time-keeping objects
