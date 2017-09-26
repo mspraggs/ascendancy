@@ -107,6 +107,10 @@ namespace ascendancy
   template <typename... Ts>
   void Logger::write(const LogLevel level, const Ts&... params)
   {
+    if (level > max_level_) {
+      return;
+    }
+
     std::stringstream ss;
     unpack_to_string(ss, params...);
     write(level, ss.str());
