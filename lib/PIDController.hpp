@@ -63,6 +63,7 @@ namespace ascendancy
   Vec<NOut> PIDController<NIn, NOut>::compute_output(const Vec<NIn>& input)
   {
     Vec<NIn> diff = input - prev_err_;
+    prev_err_ = input;
     integral_ += input;
 
     return kp_ * input + ki_ * integral_ + kd_ * diff;
