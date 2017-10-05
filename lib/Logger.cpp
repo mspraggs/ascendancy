@@ -24,6 +24,29 @@
 
 namespace ascendancy
 {
+  Logger::Logger(Logger&& logger) noexcept
+      : max_level_(logger.max_level_), console_out_(logger.console_out_)
+  {
+    // First shut down the thread watching the queue for thread safety.
+    logger.watch_queue_ = false;
+    logger.write(LogLevel::Info, "Moving Logger instance...");
+    if (logger.watching_thread_.joinable()) {
+      logger.watching_thread_.join();
+    }
+
+    log_file_ = std::move(logger.log_file_);
+    watch_queue_ = true;
+    queue_size_ = logger.queue_size_.load();
+    queue_head_ = logger.queue_head_.load();
+    queue_tail_ = logger.queue_tail_.load();
+    queue_ = logger.queue_;
+
+    watching_thread_ = std::thread([this] () { watch_queue(); });
+
+    write(LogLevel::Info, "Finished constructing Logger instance.");
+  }
+
+
   void Logger::write(const ascendancy::LogLevel level,
                      const std::string& message)
   {

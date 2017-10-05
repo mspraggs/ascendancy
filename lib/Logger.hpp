@@ -73,6 +73,8 @@ namespace ascendancy
       write(LogLevel::Info, "Finished constructing Logger instance.");
     }
 
+    Logger(Logger&& logger) noexcept;
+
     ~Logger();
 
     void write(const LogLevel level, const std::string& message);
