@@ -30,9 +30,10 @@
 
 #include <sys/mman.h>
 
+#include <spdlog/spdlog.h>
+
 #include "DataStore.hpp"
 #include "globals.hpp"
-#include "Logger.hpp"
 #include "RefGenerator.hpp"
 #include "utils.hpp"
 
@@ -53,19 +54,22 @@ namespace ascendancy
     using InputType = Vec<NIn>;
     using OutputType = Vec<NOut>;
 
-    ControlSystem(Logger& logger, const unsigned int frequency)
-        : thread_running_(false), dirty_(false), logger_(&logger),
-          frequency_(frequency)
+    ControlSystem(const std::string& log_name, const unsigned int frequency)
+        : thread_running_(false), dirty_(false), frequency_(frequency)
     {
-      logger_->write(LogLevel::Info, "Finished constructing ControlSystem "
-          "instance.");
+      logger_ = spdlog::get(log_name);
+
+      if (logger_ == nullptr) {
+        spdlog::set_async_mode(4096);
+        logger_ = spdlog::stdout_logger_mt(log_name);
+      }
+      logger_->info("Finished constructing ControlSystem instance.");
 
       try {
         algorithms_.reserve(100);
       }
       catch (const std::bad_alloc& e) {
-        logger_->write(LogLevel::Warning, "Unable to reserve algorithms_: ",
-                       e.what());
+        logger_->warn("Unable to reserve algorithms_: {}", e.what());
       }
     }
 
@@ -137,7 +141,7 @@ namespace ascendancy
     std::vector<std::unique_ptr<Algorithm<NIn, NOut>>> algorithms_;
     std::unique_ptr<RefGenerator<NIn>> ref_generator_;
 
-    Logger* logger_;
+    std::shared_ptr<spdlog::logger> logger_;
 
     unsigned int frequency_;
   };
@@ -162,7 +166,7 @@ namespace ascendancy
     thread_running_.store(control_system.thread_running_);
     dirty_.store(control_system.dirty_);
 
-    logger_->write(LogLevel::Info, "Finished moving ControlSystem instance");
+    logger_->info("Finished moving ControlSystem instance");
   }
   
 
@@ -176,9 +180,8 @@ namespace ascendancy
       }
     }
     catch (const std::system_error& e) {
-      logger_->write(
-          LogLevel::Error, "Exception raised when destroying ControlSystem "
-              "object: ", e.what());
+      logger_->error("Exception raised when destroying ControlSystem object: {}",
+                     e.what());
     }
   }
 
@@ -191,9 +194,7 @@ namespace ascendancy
   {
     // Check if the thread is already running, and stop here if it is
     if (thread_running_) {
-      logger_->write(
-          LogLevel::Warning, "Trying to instruct controller when it's already "
-              "running!");
+      logger_->warn("Trying to instruct controller when it's already running!");
       throw std::logic_error("Controller is already running!");
     }
 
@@ -203,8 +204,10 @@ namespace ascendancy
         rt_thread_.join();
       }
       catch (const std::system_error& e) {
-        logger_->write(LogLevel::Error, "Exception raised when trying to join "
-            "real-time thread: ", e.what());
+        logger_->error(
+            "Exception raised when trying to join real-time thread: {}",
+            e.what());
+
         throw;
       }
     }
@@ -214,7 +217,7 @@ namespace ascendancy
     const auto algorithm_index = algorithm_mapping_.at(algorithm_id);
 
     try {
-      logger_->write(LogLevel::Info, "Launching controller thread...");
+      logger_->info("Launching controller thread...");
       rt_thread_ = std::thread(
           [this, algorithm_index, &parameters, &src, &sink]() {
         // Suspend thread until it's been made real-time (see below).
@@ -226,23 +229,22 @@ namespace ascendancy
           run_internal(algorithm_index, parameters, src, sink);
         }
         catch (const std::exception& e) {
-          logger_->write(LogLevel::Error, "Unhandled exception in real-time "
-                             "thread: ", e.what());
+          logger_->error("Unhandled exception in real-time thread: {}",
+                         e.what());
           sink(0u, static_cast<Vec<NOut>>(Vec<NOut>::Zero()));
           dirty_ = true;
         }
         thread_running_ = false;
       });
-      logger_->write(LogLevel::Info, "Controller thread launched successfully!");
+      logger_->info("Controller thread launched successfully!");
     }
     catch (const std::system_error& e) {
-      logger_->write(LogLevel::Error, "Exception thrown when starting "
-                         "real-time thread: ", e.what());
+      logger_->error("Exception thrown when starting real-time thread: ",
+                     e.what());
       throw;
     }
 
-    logger_->write(LogLevel::Info, "Promoting controller thread to real-time "
-        "priority...");
+    logger_->info("Promoting controller thread to real-time priority...");
     // Set the priority of the new thread to maximum, making it real-time.
     struct sched_param param;
     param.sched_priority = 99;
@@ -250,12 +252,11 @@ namespace ascendancy
                                        SCHED_FIFO, &param);
 
     if (result) {
-      logger_->write(LogLevel::Warning, "Unable to make controller thread "
-                         "real-time! (Error code ", result, ")");
+      logger_->warn(
+          "Unable to make controller thread real-time! (Error code {})", result);
     }
     else {
-      logger_->write(LogLevel::Info, "Successfully made controller thread an "
-          "RT thread.");
+      logger_->info("Successfully made controller thread an RT thread.");
     }
 
     // Wake suspended real-time thread, now that it's real-time.
@@ -270,8 +271,7 @@ namespace ascendancy
   void ControlSystem<NIn, NOut>::add_algorithm(unsigned int id, Args&&... args)
   {
     if (is_busy()) {
-      logger_->write(LogLevel::Warning,
-                     "Cannot set algorithm: control system is busy!");
+      logger_->warn("Cannot set algorithm: control system is busy!");
       return;
     }
 
@@ -281,8 +281,7 @@ namespace ascendancy
       algorithm_mapping_[id] = algorithms_.size() - 1;
     }
     catch (const std::bad_alloc& e) {
-      logger_->write(LogLevel::Error, "Unable to construct Algorithm instance: ",
-                     e.what());
+      logger_->error("Unable to construct Algorithm instance: {}", e.what());
       throw;
     }
   }
@@ -293,8 +292,7 @@ namespace ascendancy
       unsigned int id, std::unique_ptr<Algorithm<NIn, NOut>> algorithm)
   {
     if (is_busy()) {
-      logger_->write(LogLevel::Warning,
-                     "Cannot set algorithm: control system is busy");
+      logger_->warn("Cannot set algorithm: control system is busy");
       return;
     }
 
@@ -304,8 +302,7 @@ namespace ascendancy
       algorithm_mapping_[id] = algorithms_.size() - 1;
     }
     catch (const std::bad_alloc& e) {
-      logger_->write(LogLevel::Error, "Unable to add Algorithm instance: ",
-                     e.what());
+      logger_->error("Unable to add Algorithm instance: {}", e.what());
       throw;
     }
   }
@@ -316,9 +313,7 @@ namespace ascendancy
   void ControlSystem<NIn, NOut>::set_ref_generator(Args&&... args)
   {
     if (is_busy()) {
-      logger_->write(
-          LogLevel::Warning, "Cannot set reference generator: control system "
-              "is busy!");
+      logger_->warn("Cannot set reference generator: control system is busy!");
       return;
     }
 
@@ -332,8 +327,7 @@ namespace ascendancy
       std::unique_ptr<RefGenerator<NIn>> ref_generator)
   {
     if (is_busy()) {
-      logger_->write(LogLevel::Warning, "Cannot set reference generator: "
-          "control system is busy");
+      logger_->warn("Cannot set reference generator: control system is busy");
       return;
     }
 
@@ -346,12 +340,11 @@ namespace ascendancy
   void ControlSystem<NIn, NOut>::erase_algorithm(const unsigned int id)
   {
     if (is_busy()) {
-      logger_->write(LogLevel::Warning,
-                     "Cannot erase algorithm: control system is busy");
+      logger_->warn("Cannot erase algorithm: control system is busy");
     }
     if (algorithm_mapping_.count(id) == 0) {
-      logger_->write(LogLevel::Warning, "ID supplied to erase_algorithm does "
-          "not denote a valid algorithm.");
+      logger_->warn("ID supplied to erase_algorithm does not denote a valid "
+                        "algorithm.");
       return;
     }
 
@@ -387,31 +380,28 @@ namespace ascendancy
       const std::size_t algorithm_idx, const DataStore& parameters,
       Src& src, Snk& sink)
   {
-    logger_->write(LogLevel::Info,
-                   "Checking for algorithm and reference generator...");
+    logger_->info("Checking for algorithm and reference generator...");
     if (algorithm_idx >= algorithms_.size()) {
-      logger_->write(LogLevel::Warning,
-                     "Requested algorithm has not been set. Aborting run!");
+      logger_->warn("Requested algorithm has not been set. Aborting run!");
       throw std::invalid_argument("Specified algorithm_idx is invalid!");
     }
 
     if (ref_generator_ == nullptr) {
-      logger_->write(LogLevel::Warning,
-                     "Reference generator has not been set. Aborting run!");
+      logger_->warn("Reference generator has not been set. Aborting run!");
       throw std::logic_error("Reference generator has not been set!");
     }
-    logger_->write(LogLevel::Info, "Algorithm and reference generator present!");
+    logger_->info("Algorithm and reference generator present!");
 
     // First: RT thread housekeeping -------------------------------------------
 
-    logger_->write(LogLevel::Info, "Locking memory pages into RAM...");
+    logger_->info("Locking memory pages into RAM...");
     // Lock memory into RAM to prevent it being moved to disk
     int result = mlockall(MCL_CURRENT | MCL_FUTURE);
     if (result == -1) {
-      logger_->write(LogLevel::Warning, "Unable to lock memory pages!");
+      logger_->warn("Unable to lock memory pages!");
     }
     else {
-      logger_->write(LogLevel::Info, "Successfully locked memory pages!");
+      logger_->info("Successfully locked memory pages!");
     }
 
     // Prevent writing of variables while realtime code is running
@@ -421,11 +411,11 @@ namespace ascendancy
     // Pre-fault the stack to avoid page-faults during runs below.
     stack_prefault();
 
-    logger_->write(LogLevel::Info, "Finished RT thread setup.");
+    logger_->info("Finished RT thread setup.");
 
     // Second: obtain and run algorithm components -----------------------------
 
-    logger_->write(LogLevel::Info, "Grabbing and using algorithm...");
+    logger_->info("Grabbing and using algorithm...");
 
     auto& algorithm = *algorithms_[algorithm_idx];
 
@@ -466,8 +456,8 @@ namespace ascendancy
       std::chrono::nanoseconds comp_duration = end_time - step_start_time;
 
       durations[i] = comp_duration.count();
-      logger_->write(LogLevel::Debug, "Real-time step took ",
-                     comp_duration.count(), " nanoseconds");
+      logger_->debug("Real-time step took {} nanoseconds",
+                     comp_duration.count());
 
       if (i > 0 and i % 10 == 0) {
         comp_duration += (drift - it_duration * i);
@@ -484,7 +474,7 @@ namespace ascendancy
 
     algorithm.finish();
 
-    logger_->write(LogLevel::Info, "Finished running algorithm!");
+    logger_->info("Finished running algorithm!");
 
     // Compute some real-time thread time-keeping statistics
 
@@ -496,21 +486,21 @@ namespace ascendancy
     const double max_duration =
         *std::max_element(durations.begin(), durations.end());
 
-    logger_->write(LogLevel::Info, "Real-time step duration stats:");
-    logger_->write(LogLevel::Info, "Minimum duration = ", min_duration);
-    logger_->write(LogLevel::Info, "Mean duration    = ", mean_duration);
-    logger_->write(LogLevel::Info, "Maximum duration = ", max_duration);
+    logger_->info("Real-time step duration stats:");
+    logger_->info("Minimum duration = {}", min_duration);
+    logger_->info("Mean duration    = {}", mean_duration);
+    logger_->info("Maximum duration = {}", max_duration);
 
     // Third: Restore memory state (unlocked) ----------------------------------
 
-    logger_->write(LogLevel::Info, "Unlocking memory pages from RAM...");
+    logger_->info("Unlocking memory pages from RAM...");
 
     int unlock_result = munlockall();
     if (unlock_result == -1) {
-      logger_->write(LogLevel::Warning, "Unable to unlock memory.");
+      logger_->warn("Unable to unlock memory.");
     }
     else {
-      logger_->write(LogLevel::Info, "Successfully unlocked memory.");
+      logger_->info("Successfully unlocked memory.");
     }
   }
 }

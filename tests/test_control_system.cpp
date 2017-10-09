@@ -105,12 +105,11 @@ struct MockSrcSnk
 
 
 TEST_CASE("Test ControlSystem") {
-  Logger logger(LogLevel::Debug, true);
 
   DataStore store;
   store.set(1.5);
 
-  ControlSystem<10, 10> controller(logger, 20);
+  ControlSystem<10, 10> controller("main", 20);
   controller.add_algorithm<DummyAlgorithm>(1);
 
   MockSrcSnk src_sink;

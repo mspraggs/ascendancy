@@ -35,9 +35,7 @@ int main(int argc, char* argv[])
   const auto src = [] (const unsigned int i) { return Vec<nin>::Zero(); };
   auto snk = [] (const unsigned int i, const Vec<nout>& data) {};
 
-  Logger logger(LogLevel::Debug, true, log_file_path);
-
-  ControlSystem<nin, nout> control_system(logger, 40);
+  ControlSystem<nin, nout> control_system("main", 40);
 
   Mat<Dyn, Dyn> mapping = Mat<Dyn, Dyn>::Random(nin * nsamples, nin * nsamples);
   control_system.add_algorithm<GenericLiftedAlgorithm<nin, nout>>(0, mapping);

@@ -34,9 +34,7 @@ int main(char argc, char* argv[])
   const auto src = [] (const unsigned int i) { return Vec<nin>::Zero(); };
   auto snk = [] (const unsigned int i, const Vec<nout>& data) {};
 
-  Logger logger(LogLevel::Debug, true, log_file_path);
-
-  ControlSystem<nin, nout> control_system(logger, 40);
+  ControlSystem<nin, nout> control_system("main", 1000);
 
   control_system.add_algorithm<Algorithm<nin, nout>>(0);
   control_system.set_ref_generator<ConstRefGenerator<nin>>(

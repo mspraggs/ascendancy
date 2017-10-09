@@ -28,7 +28,6 @@ set(HEADERS
   GenericLiftedAlgorithm.hpp
   GenericRefGenerator.hpp
   globals.hpp
-  Logger.hpp
   NonCausalAlgorithm.hpp
   PIDController.hpp
   StateSpace.hpp
@@ -37,7 +36,6 @@ set(HEADERS
   utils.hpp)
 
 set(SOURCES
-  Logger.cpp
   serialisation.cpp
   utils.cpp)
 
