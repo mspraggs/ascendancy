@@ -20,6 +20,7 @@
 #ifndef ASCENDANCY_HELPERS_HPP
 #define ASCENDANCY_HELPERS_HPP
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -123,6 +124,17 @@ namespace ascendancy
     catch (std::ios_base::failure& e) {
       std::cout << "Error reading from file: " << e.what() << std::endl;
     }
+
+    return ret;
+  }
+
+  template <typename T1, typename T2>
+  std::vector<T1> static_cast_vector(const std::vector<T2>& vec)
+  {
+    std::vector<T1> ret(vec.size());
+
+    std::transform(vec.begin(), vec.end(), ret.begin(),
+                   [] (const T2& e) { return static_cast<T1>(e); });
 
     return ret;
   }
