@@ -84,7 +84,13 @@ namespace ascendancy
     template <typename Src, typename Snk>
     bool run(const unsigned int algorithm_id, const DataStore& parameters,
              Src& src, Snk& sink);
-    void stop() { thread_running_ = false; }
+    void stop()
+    {
+      thread_running_ = false;
+      if (rt_thread_.joinable()) {
+        rt_thread_.join();
+      }
+    }
 
     bool is_busy() const { return thread_running_; }
 
