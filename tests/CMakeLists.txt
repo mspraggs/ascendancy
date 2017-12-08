@@ -27,6 +27,7 @@ set(SRC
   test_algorithms.cpp
   test_control_system.cpp
   test_controllers.cpp
+  test_event_queue.cpp
   test_main.cpp
   test_ref_generators.cpp
   test_state_space.cpp

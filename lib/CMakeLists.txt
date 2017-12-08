@@ -25,6 +25,7 @@ set(HEADERS
   Controller.hpp
   ControlSystem.hpp
   DataStore.hpp
+  EventQueue.hpp
   GenericLiftedAlgorithm.hpp
   GenericRefGenerator.hpp
   globals.hpp
