@@ -72,8 +72,6 @@ namespace ascendancy
 
     void consume_event();
 
-    unsigned int num_pending() const { return queue_size_; }
-
   private:
     void watch_queue();
     void consume_event(std::unique_lock<std::mutex>&& queue_lock);
