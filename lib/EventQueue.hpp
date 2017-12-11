@@ -47,8 +47,40 @@ namespace ascendancy
     }
   }
 
+
   template <typename Base>
-  class EventQueue
+  class EventQueueBase
+  {
+    // Looks like a pointless base class, but useful for mocking in tests
+  private:
+    using Slot = std::function<void(const DataStore&)>;
+
+  protected:
+    virtual void raise_event_impl(const Base& subject, DataStore data) {}
+
+  public:
+    virtual ~EventQueueBase() = default;
+
+    virtual void start() {}
+    virtual void stop() {}
+
+    virtual void register_link(const Base& subject, Slot slot) {}
+    virtual void unregister_link(const Base& subject) {}
+
+    template <typename... Args>
+    void raise_event(const Base& subject, Args&&... args)
+    {
+      DataStore data;
+      detail::args_to_datastore(data, std::forward<Args>(args)...);
+      raise_event_impl(subject, std::move(data));
+    }
+
+    virtual void consume_event() {}
+  };
+
+
+  template <typename Base>
+  class EventQueue : public EventQueueBase<Base>
   {
   private:
     using Slot = std::function<void(const DataStore&)>;
@@ -61,16 +93,15 @@ namespace ascendancy
 
     ~EventQueue();
 
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 
-    void register_link(const Base& subject, Slot slot);
-    void unregister_link(const Base& subject);
+    void register_link(const Base& subject, Slot slot) override;
+    void unregister_link(const Base& subject) override;
 
-    template <typename... Args>
-    void raise_event(const Base& subject, Args&&... args);
+    void raise_event_impl(const Base& subject, DataStore args) override;
 
-    void consume_event();
+    void consume_event() override;
 
   private:
     void watch_queue();
@@ -162,12 +193,8 @@ namespace ascendancy
 
 
   template<typename Base>
-  template<typename... Args>
-  void EventQueue<Base>::raise_event(const Base& subject, Args&& ... args)
+  void EventQueue<Base>::raise_event_impl(const Base& subject, DataStore data)
   {
-    DataStore data;
-    detail::args_to_datastore(data, std::forward<Args>(args)...);
-
     std::lock_guard<std::mutex> lock(queue_mutex_);
 
     if (queue_size_ >= max_queue_size_) {
