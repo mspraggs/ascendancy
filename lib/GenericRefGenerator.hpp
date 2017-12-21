@@ -32,9 +32,7 @@ namespace ascendancy
   {
   public:
     GenericRefGenerator(aligned_vector<Vec<NIn>> reference)
-        : RefGenerator<NIn>(
-            static_cast<unsigned int>(reference.size()),
-            sizeof(unsigned int) + sizeof(double) * NIn * reference.size()),
+        : RefGenerator<NIn>(static_cast<unsigned int>(reference.size())),
           reference_(std::move(reference))
     {}
 
@@ -108,9 +106,6 @@ namespace ascendancy
 
     this->num_samples_ = num_samples;
     reference_ = std::move(reference);
-
-    this->serialised_size_ =
-        sizeof(unsigned int) + sizeof(double) * NIn * this->num_samples_;
   }
 }
 
