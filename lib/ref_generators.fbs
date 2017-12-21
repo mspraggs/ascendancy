@@ -1,0 +1,20 @@
+namespace ascendancy.serialisation;
+
+
+table Vector {
+  data:[double];
+}
+
+table Matrix {
+  data:[Vector];
+}
+
+table ConstRefGenerator {
+  num_samples:uint;
+  value:Vector;
+}
+
+table GenericRefGenerator {
+  num_samples:uint;
+  values:Matrix;
+}

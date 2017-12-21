@@ -33,6 +33,7 @@ set(HEADERS
   PIDController.hpp
   StateSpace.hpp
   RefGenerator.hpp
+  ref_generators_generated.h
   serialisation.hpp
   utils.hpp)
 
