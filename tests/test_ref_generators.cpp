@@ -77,8 +77,7 @@ TEST_CASE("Test GenericRefGenerator")
 
   SECTION("Test deserialise")
   {
-    Vec<2> ref = Vec<2>::Zero();
-    GenericRefGenerator<2> ref_generator_local({});
+    GenericRefGenerator<2> ref_generator_local;
     const auto data = load_binary_data(TEST_DATA_PATH"/generic_refgen.bin");
 
     ref_generator_local.deserialise(data);

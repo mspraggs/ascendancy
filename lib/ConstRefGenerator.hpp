@@ -35,12 +35,13 @@ namespace ascendancy
     ConstRefGenerator(const Vec<NIn>& value, const unsigned int num_samples)
         : RefGenerator<NIn>(num_samples), value_(value)
     {}
+    ConstRefGenerator() : ConstRefGenerator(Vec<NIn>::Zero(), 0) {}
 
     std::vector<unsigned char> serialise() const override;
 
     void deserialise(const std::vector<unsigned char>& data) override;
 
-    Vec<NIn> get_reference(const unsigned int samp_num) const override;
+    Vec<NIn> get_reference(const unsigned int) const override;
 
   private:
     Vec<NIn> value_;
@@ -93,8 +94,7 @@ namespace ascendancy
 
 
   template <unsigned int NIn>
-  Vec<NIn> ConstRefGenerator<NIn>::get_reference(
-      const unsigned int samp_num) const
+  Vec<NIn> ConstRefGenerator<NIn>::get_reference(const unsigned int) const
   {
     return value_;
   }

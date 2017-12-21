@@ -34,8 +34,8 @@ namespace ascendancy
   class RefGenerator
   {
   public:
-
     RefGenerator(const unsigned int num_samples);
+    RefGenerator() : RefGenerator(0) {}
 
     virtual ~RefGenerator() = default;
 

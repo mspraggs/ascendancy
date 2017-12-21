@@ -31,6 +31,7 @@ namespace ascendancy
   class GenericRefGenerator : public RefGenerator<NIn>
   {
   public:
+    GenericRefGenerator() : RefGenerator<NIn>() {}
     GenericRefGenerator(aligned_vector<Vec<NIn>> reference)
         : RefGenerator<NIn>(static_cast<unsigned int>(reference.size())),
           reference_(std::move(reference))
