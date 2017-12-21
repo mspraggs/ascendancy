@@ -126,6 +126,9 @@ namespace ascendancy
 
     void erase_algorithm(const unsigned int id);
 
+    template <typename Fn>
+    void visit_algorithms(Fn func);
+
   private:
     static void stack_prefault();
 
@@ -366,6 +369,16 @@ namespace ascendancy
           pair.second--;
         }
       }
+    }
+  }
+
+
+  template<unsigned int NIn, unsigned int NOut>
+  template<typename Fn>
+  void ControlSystem<NIn, NOut>::visit_algorithms(Fn func)
+  {
+    for (auto& algorithm : algorithms_) {
+      func(*algorithm);
     }
   }
 
