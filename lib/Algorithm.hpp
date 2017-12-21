@@ -47,6 +47,8 @@ namespace ascendancy
     // Specifies the finalisation step of the algorithm.
     virtual void finish() {}
 
+    virtual void notify(const DataStore&) {}
+
     virtual void accept(std::unordered_map<std::string, DataStore>& data) const
     {}
   };
