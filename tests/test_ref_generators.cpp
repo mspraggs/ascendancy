@@ -34,30 +34,23 @@ TEST_CASE("Test ConstRefGenerator")
   SECTION("Test serialise")
   {
     const auto data = ref_generator.serialise();
-
-    const std::vector<int> expected_raw{
-        0x0, 0x0, 0x0, 0x64,
-        0x40, 0x9, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66,
-        0x3f, -0xf, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66};
-    const auto expected = static_cast_vector<char>(expected_raw);
-
+    const auto expected = load_binary_data(TEST_DATA_PATH"/const_refgen.bin");
     REQUIRE(data == expected);
   }
 
   SECTION("Test deserialise")
   {
-    const std::vector<int> data_raw{
-        0x0, 0x0, 0x0, 0x10,
-        0x40, 0x9, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66,
-        0x3f, -0x10, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-    const auto data = static_cast_vector<char>(data_raw);
+    Vec<2> ref = Vec<2>::Zero();
+    ConstRefGenerator<2> ref_generator_local(ref, 1);
+    const auto data = load_binary_data(TEST_DATA_PATH"/const_refgen.bin");
 
-    ref_generator.deserialise(data);
+    ref_generator_local.deserialise(data);
 
-    Vec<2> expected_ref(3.2, 1.0);
+    Vec<2> expected_ref(3.2, 1.1);
 
-    REQUIRE(ref_generator.get_num_samples() == 16);
-    REQUIRE(ref_generator.get_reference(0) == ascendancy::Approx(expected_ref));
+    REQUIRE(ref_generator_local.get_num_samples() == 100);
+    REQUIRE(ref_generator_local.get_reference(0) ==
+                ascendancy::Approx(expected_ref));
   }
 
   SECTION("Test get_reference")
@@ -78,37 +71,22 @@ TEST_CASE("Test GenericRefGenerator")
   SECTION("Test serialise")
   {
     const auto data = ref_generator.serialise();
-
-    const std::vector<int> expected_raw{
-        0x0, 0x0, 0x0, 0x2,
-        0x3f, -0xd, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-        0x40, 0x1, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66,
-        0x40, 0x3, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-        0x40, 0x6, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
-    const auto expected = static_cast_vector<char>(expected_raw);
-
+    const auto expected = load_binary_data(TEST_DATA_PATH"/generic_refgen.bin");
     REQUIRE(data == expected);
   }
 
   SECTION("Test deserialise")
   {
-    const std::vector<int> data_raw{
-        0x0, 0x0, 0x0, 0x3,
-        0x3f, -0x14, -0x34, -0x34, -0x34, -0x34, -0x34, -0x33,
-        0x40, 0x1, -0x67, -0x67, -0x67, -0x67, -0x67, -0x66,
-        0x40, 0x3, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-        0x40, 0x6, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
-        0x40, 0x3, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-        0x40, 0x6, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66};
-    const auto data = static_cast_vector<char>(data_raw);
+    Vec<2> ref = Vec<2>::Zero();
+    GenericRefGenerator<2> ref_generator_local({});
+    const auto data = load_binary_data(TEST_DATA_PATH"/generic_refgen.bin");
 
-    ref_generator.deserialise(data);
+    ref_generator_local.deserialise(data);
 
-    Vec<2> expected_ref(0.9, 2.2);
-
-    REQUIRE(ref_generator.get_num_samples() == 3);
-    REQUIRE(ref_generator.get_reference(0) == ascendancy::Approx(expected_ref));
-    REQUIRE(ref_generator.get_reference(1) == ascendancy::Approx(reference[1]));
-    REQUIRE(ref_generator.get_reference(2) == ascendancy::Approx(reference[1]));
+    REQUIRE(ref_generator_local.get_num_samples() == 2);
+    REQUIRE(ref_generator_local.get_reference(0) ==
+                ascendancy::Approx(reference[0]));
+    REQUIRE(ref_generator_local.get_reference(1) ==
+                ascendancy::Approx(reference[1]));
   }
 }
