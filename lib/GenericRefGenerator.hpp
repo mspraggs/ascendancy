@@ -38,9 +38,9 @@ namespace ascendancy
           reference_(std::move(reference))
     {}
 
-    std::vector<char> serialise() const override;
+    std::vector<unsigned char> serialise() const override;
 
-    void deserialise(const std::vector<char>& data) override;
+    void deserialise(const std::vector<unsigned char>& data) override;
 
     Vec<NIn> get_reference(const unsigned int samp_num) const override
     {
@@ -53,54 +53,61 @@ namespace ascendancy
 
 
   template <unsigned int NIn>
-  std::vector<char> GenericRefGenerator<NIn>::serialise() const
+  std::vector<unsigned char> GenericRefGenerator<NIn>::serialise() const
   {
-    std::vector<char> ret(this->serialised_size_);
+    // Build a buffer of bytes representing the internal state of the class
 
-    ascendancy::serialise(ret.begin(), this->num_samples_);
+    // FlatBuffers object that will do the hard work.
+    flatbuffers::FlatBufferBuilder fbb;
 
-    constexpr std::size_t sample_size = sizeof(double) * NIn;
-    const auto offset = sizeof(unsigned int);
-
-    for (unsigned int i = 0; i < reference_.size(); ++i) {
-      ascendancy::serialise(ret.begin() + offset + sample_size * i,
-                            reference_[i]);
+    using Offsets = std::vector<flatbuffers::Offset<serialisation::Vector>>;
+    Offsets vectors(this->num_samples_);
+    
+    for (unsigned int i = 0; i < this->num_samples_; ++i) {
+      vectors[i] = serialisation::CreateVector(
+          fbb, fbb.CreateVector(reference_[i].data(), NIn));
     }
+    
+    auto values = serialisation::CreateMatrix(fbb, fbb.CreateVector(vectors));
 
-    return ret;
+    serialisation::GenericRefGeneratorBuilder builder(fbb);
+    builder.add_num_samples(this->num_samples_);
+    builder.add_values(values);
+
+    fbb.Finish(builder.Finish());
+
+    // Return a std::vector
+    return std::vector<unsigned char>(fbb.GetBufferPointer(),
+                                      fbb.GetBufferPointer() + fbb.GetSize());
   }
 
 
   template <unsigned int NIn>
-  void GenericRefGenerator<NIn>::deserialise(const std::vector<char>& data)
+  void GenericRefGenerator<NIn>::deserialise(
+      const std::vector<unsigned char>& data)
   {
-    const std::string throw_msg =
-        "Supplied data to deserialise has bad length. "
-            "GenericRefGenerator cannot deserialise.";
+    this->template verify_buffer<serialisation::GenericRefGenerator>(data);
+    const auto refgen_data =
+        this->template parse_buffer<serialisation::GenericRefGenerator>(data);
 
-    if (data.size() < sizeof(unsigned int)) {
-      throw std::length_error(throw_msg);
+    const auto num_samples = refgen_data->num_samples();
+
+    const auto values = refgen_data->values();
+
+    if (values == nullptr or values->data() == nullptr or
+        values->data()->Length() != num_samples) {
+      throw std::invalid_argument("GenericRefGenerator unable to retrieve "
+                                      "sample information from supplied data.");
     }
 
-    const auto sample_data_size = data.size() - sizeof(unsigned int);
+    aligned_vector<Vec<NIn>> reference(num_samples);
 
-    unsigned int num_samples;
-    std::tie(num_samples) = ascendancy::deserialise<unsigned int>(data);
-
-    if (sample_data_size != NIn * sizeof(double) * num_samples) {
-      throw std::length_error(throw_msg);
+    for (unsigned int i = 0; i < num_samples; ++i) {
+      reference[i] = vector_from_buffer<NIn>(values->data()->Get(i));
     }
 
     this->num_samples_ = num_samples;
-    reference_.resize(this->num_samples_);
-
-    constexpr std::size_t sample_size = sizeof(double) * NIn;
-    constexpr std::size_t offset = sizeof(unsigned int);
-
-    for (unsigned int i = 0; i < reference_.size(); ++i) {
-      ascendancy::deserialise(data.begin() + offset + i * sample_size,
-                              reference_[i]);
-    }
+    reference_ = std::move(reference);
 
     this->serialised_size_ =
         sizeof(unsigned int) + sizeof(double) * NIn * this->num_samples_;

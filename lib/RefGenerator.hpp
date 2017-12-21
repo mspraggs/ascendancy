@@ -23,6 +23,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <flatbuffers/flatbuffers.h>
+
 #include "globals.hpp"
 
 
@@ -38,9 +40,9 @@ namespace ascendancy
 
     virtual ~RefGenerator() = default;
 
-    virtual std::vector<char> serialise() const = 0;
+    virtual std::vector<unsigned char> serialise() const = 0;
 
-    virtual void deserialise(const std::vector<char>& data) = 0;
+    virtual void deserialise(const std::vector<unsigned char>& data) = 0;
 
     unsigned int serialised_size() const { return serialised_size_; }
 
@@ -49,6 +51,12 @@ namespace ascendancy
     unsigned int get_num_samples() const { return num_samples_; }
 
   protected:
+    template <typename T>
+    void verify_buffer(const std::vector<unsigned char>& buffer) const;
+
+    template <typename T>
+    const T* parse_buffer(const std::vector<unsigned char>& buffer) const;
+
     unsigned int num_samples_, serialised_size_;
   };
 
@@ -58,6 +66,32 @@ namespace ascendancy
                                    const unsigned int serialised_size)
       : num_samples_(num_samples), serialised_size_(serialised_size)
   {
+  }
+
+  template<int NIn>
+  template <typename T>
+  void RefGenerator<NIn>::verify_buffer(
+      const std::vector<unsigned char>& buffer) const
+  {
+    // Use FlatBuffers to validate the supplied buffer using the specified
+    // serialised flatbuffer type
+
+    auto verifier = flatbuffers::Verifier(buffer.data(), buffer.size());
+    const bool valid_buffer = verifier.VerifyBuffer<T>(nullptr);
+
+    if (not valid_buffer) {
+      throw std::invalid_argument("Binary data supplied to RefGenerator class "
+                                      "is invalid.");
+    }
+  }
+
+
+  template<int NIn>
+  template<typename T>
+  const T* RefGenerator<NIn>::parse_buffer(
+      const std::vector<unsigned char>& buffer) const
+  {
+    return flatbuffers::GetRoot<T>(buffer.data());
   }
 }
 

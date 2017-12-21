@@ -22,7 +22,8 @@
 
 #include "globals.hpp"
 #include "RefGenerator.hpp"
-#include "serialisation.hpp"
+#include "ref_generators_generated.h"
+#include "utils.hpp"
 
 
 namespace ascendancy
@@ -37,9 +38,9 @@ namespace ascendancy
           value_(value)
     {}
 
-    std::vector<char> serialise() const override;
+    std::vector<unsigned char> serialise() const override;
 
-    void deserialise(const std::vector<char>& data) override;
+    void deserialise(const std::vector<unsigned char>& data) override;
 
     Vec<NIn> get_reference(const unsigned int samp_num) const override;
 
@@ -49,22 +50,46 @@ namespace ascendancy
 
 
   template <unsigned int NIn>
-  std::vector<char> ConstRefGenerator<NIn>::serialise() const
+  std::vector<unsigned char> ConstRefGenerator<NIn>::serialise() const
   {
-    return ascendancy::serialise(this->num_samples_, value_);
+    // Build a buffer of bytes representing the internal state of the class.
+
+    // FlatBuffers object that will do the hard work.
+    flatbuffers::FlatBufferBuilder fbb;
+
+    // Create the constant used as the reference.
+    auto value =
+        serialisation::CreateVector(fbb, fbb.CreateVector(value_.data(), NIn));
+
+    // Build the class buffer from the constant above and the number of samples
+    serialisation::ConstRefGeneratorBuilder builder(fbb);
+    builder.add_num_samples(this->num_samples_);
+    builder.add_value(value);
+
+    fbb.Finish(builder.Finish());
+
+    // Return a std::vector
+    return std::vector<unsigned char>(fbb.GetBufferPointer(),
+                                      fbb.GetBufferPointer() + fbb.GetSize());
   }
 
 
   template <unsigned int NIn>
-  void ConstRefGenerator<NIn>::deserialise(const std::vector<char>& data)
+  void ConstRefGenerator<NIn>::deserialise(
+      const std::vector<unsigned char>& data)
   {
-    if (data.size() != this->serialised_size_) {
-      throw std::length_error("Supplied data to deserialise has bad length. "
-                                  "ConstRefGenerator cannot deserialise.");
+    this->template verify_buffer<serialisation::ConstRefGenerator>(data);
+    const auto refgen_data =
+        this->template parse_buffer<serialisation::ConstRefGenerator>(data);
+
+    this->num_samples_ = refgen_data->num_samples();
+
+    if (refgen_data->value() == nullptr) {
+      throw std::invalid_argument("ConstRefGenerator unable to retrieve values "
+                                      "from supplied buffer.");
     }
 
-    std::tie(this->num_samples_, value_) =
-        ascendancy::deserialise<unsigned int, Vec<NIn>>(data);
+    value_ = vector_from_buffer<NIn>(refgen_data->value());
   }
 
 
