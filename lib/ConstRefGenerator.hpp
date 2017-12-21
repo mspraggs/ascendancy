@@ -33,9 +33,7 @@ namespace ascendancy
   {
   public:
     ConstRefGenerator(const Vec<NIn>& value, const unsigned int num_samples)
-        : RefGenerator<NIn>(num_samples,
-                            sizeof(unsigned int) + NIn * sizeof(double)),
-          value_(value)
+        : RefGenerator<NIn>(num_samples), value_(value)
     {}
 
     std::vector<unsigned char> serialise() const override;
@@ -82,7 +80,7 @@ namespace ascendancy
     const auto refgen_data =
         this->template parse_buffer<serialisation::ConstRefGenerator>(data);
 
-    this->num_samples_ = refgen_data->num_samples();
+    const auto num_samples = refgen_data->num_samples();
 
     if (refgen_data->value() == nullptr) {
       throw std::invalid_argument("ConstRefGenerator unable to retrieve values "
@@ -90,6 +88,7 @@ namespace ascendancy
     }
 
     value_ = vector_from_buffer<NIn>(refgen_data->value());
+    this->num_samples_ = num_samples;
   }
 
 

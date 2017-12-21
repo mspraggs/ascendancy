@@ -74,8 +74,7 @@ private:
 class DummyRefGenerator : public ascendancy::RefGenerator<10>
 {
 public:
-  DummyRefGenerator(const unsigned int num_samples)
-      : RefGenerator(num_samples, 0)
+  DummyRefGenerator(const unsigned int num_samples) : RefGenerator(num_samples)
   {}
 
   std::vector<unsigned char> serialise() const override

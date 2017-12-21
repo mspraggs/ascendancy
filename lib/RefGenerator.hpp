@@ -35,16 +35,13 @@ namespace ascendancy
   {
   public:
 
-    RefGenerator(const unsigned int num_samples,
-                 const unsigned int serialised_size);
+    RefGenerator(const unsigned int num_samples);
 
     virtual ~RefGenerator() = default;
 
     virtual std::vector<unsigned char> serialise() const = 0;
 
     virtual void deserialise(const std::vector<unsigned char>& data) = 0;
-
-    unsigned int serialised_size() const { return serialised_size_; }
 
     virtual Vec<NIn> get_reference(const unsigned int samp_num) const = 0;
 
@@ -57,14 +54,13 @@ namespace ascendancy
     template <typename T>
     const T* parse_buffer(const std::vector<unsigned char>& buffer) const;
 
-    unsigned int num_samples_, serialised_size_;
+    unsigned int num_samples_;
   };
 
 
   template <int NIn>
-  RefGenerator<NIn>::RefGenerator(const unsigned int num_samples,
-                                   const unsigned int serialised_size)
-      : num_samples_(num_samples), serialised_size_(serialised_size)
+  RefGenerator<NIn>::RefGenerator(const unsigned int num_samples)
+      : num_samples_(num_samples)
   {
   }
 
