@@ -138,5 +138,7 @@ namespace ascendancy
 
     return ret;
   }
+
+  std::vector<unsigned char> load_binary_data(const std::string& file_path);
 }
 #endif //ASCENDANCY_HELPERS_HPP

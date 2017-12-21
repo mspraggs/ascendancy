@@ -19,11 +19,14 @@
 cmake_minimum_required(VERSION 2.8)
 project(ascendancy++)
 
+add_definitions(-DTEST_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/data")
+
 set(SRC
   catch.hpp
   helpers.hpp
   TestRefGen.hpp
 
+  helpers.cpp
   test_algorithms.cpp
   test_control_system.cpp
   test_controllers.cpp
