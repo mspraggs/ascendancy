@@ -19,18 +19,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(ascendancy++)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+file(GLOB flatbuffers_SRC flatbuffers/*.h)
 
-find_package(Eigen3 3.0 REQUIRED)
-
-include_directories(lib deps ${EIGEN3_INCLUDE_DIR})
-
-include(GNUInstallDirs)
-
-set(CMAKE_CXX_FLAGS
-  "-g -Wall -Wextra -Wnon-virtual-dtor -pedantic -std=c++11 ${CMAKE_CXX_FLAGS}")
-
-add_subdirectory(deps)
-add_subdirectory(lib)
-add_subdirectory(benchmarks)
-add_subdirectory(tests)
+add_library(deps OBJECT ${flatbuffers_SRC})
