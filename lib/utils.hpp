@@ -74,6 +74,69 @@ namespace ascendancy
   }
 
 
+  template <int M, int N, typename T>
+  Mat<M, N> matrix_from_buffer(const T* matrix)
+  {
+    Mat<M, N> mat;
+
+    if (matrix->data() == nullptr) {
+      throw std::invalid_argument("Cannot create matrix from buffer "
+                                      "(no data supplied).");
+    }
+
+    if (matrix->data()->Length() != M) {
+      throw std::invalid_argument(
+          "Cannot create matrix from buffer "
+              "(supplied data is the wrong shape).");
+    }
+
+    for (unsigned int i = 0; i < M; ++i) {
+      const auto row = matrix->data()->Get(i);
+
+      if (row->data() == nullptr) {
+        throw std::invalid_argument("Cannot create matrix from buffer "
+                                        "(row data is missing).");
+      }
+
+      if (row->data()->Length() != N) {
+        throw std::invalid_argument(
+            "Cannot create matrix from buffer "
+                "(supplied data is the wrong shape).");
+      }
+
+      for (unsigned int j = 0; j < N; ++j) {
+        mat(i, j) = row->data()->Get(j);
+      }
+    }
+
+    return mat;
+  }
+
+
+  template <int N, typename T>
+  Vec<N> vector_from_buffer(const T* vector)
+  {
+    Vec<N> vec;
+
+    if (vector->data() == nullptr) {
+      throw std::invalid_argument("Cannot create vector from buffer "
+                                      "(no data supplied).");
+    }
+
+    if (vector->data()->Length() != N) {
+      throw std::invalid_argument(
+          "Cannot create vector from buffer "
+              "(supplied data is the wrong shape).");
+    }
+
+    for (unsigned int i = 0; i < N; ++i) {
+      vec[i] = vector->data()->Get(i);
+    }
+
+    return vec;
+  }
+
+
   template <typename T>
   std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec)
   {
