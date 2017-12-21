@@ -484,19 +484,20 @@ namespace ascendancy
 
     // Compute some real-time thread time-keeping statistics
 
-    const double min_duration =
-        *std::min_element(durations.begin(), durations.end());
-    const double mean_duration =
-        std::accumulate(durations.begin(), durations.end(), 0.0)
-            / durations.size();
-    const double max_duration =
-        *std::max_element(durations.begin(), durations.end());
+    if (not durations.empty()) {
+      const double min_duration =
+          *std::min_element(durations.begin(), durations.end());
+      const double mean_duration =
+          std::accumulate(durations.begin(), durations.end(), 0.0)
+              / durations.size();
+      const double max_duration =
+          *std::max_element(durations.begin(), durations.end());
 
-    logger_->info("Real-time step duration stats:");
-    logger_->info("Minimum duration = {}", min_duration);
-    logger_->info("Mean duration    = {}", mean_duration);
-    logger_->info("Maximum duration = {}", max_duration);
-
+      logger_->info("Real-time step duration stats:");
+      logger_->info("Minimum duration = {}", min_duration);
+      logger_->info("Mean duration    = {}", mean_duration);
+      logger_->info("Maximum duration = {}", max_duration);
+    }
     // Third: Restore memory state (unlocked) ----------------------------------
 
     logger_->info("Unlocking memory pages from RAM...");
