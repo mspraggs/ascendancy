@@ -78,10 +78,10 @@ public:
       : RefGenerator(num_samples, 0)
   {}
 
-  std::vector<char> serialise() const override
-  { return std::vector<char>(); }
+  std::vector<unsigned char> serialise() const override
+  { return std::vector<unsigned char>(); }
 
-  void deserialise(const std::vector<char>& data) override {}
+  void deserialise(const std::vector<unsigned char>& data) override {}
 
   Vec<10> get_reference(const unsigned int samp_num) const override
   { return ascendancy::Vec<10>::Zero(); }
