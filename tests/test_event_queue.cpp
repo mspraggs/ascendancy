@@ -57,10 +57,12 @@ TEST_CASE("Test EventQueue")
 
   SECTION("Test raise_event async")
   {
+    ascendancy::DataStore data;
+    data.set(5);
     queue.start();
-    queue.raise_event(watcher, 5);
+    queue.raise_event(watcher, data);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     REQUIRE(watcher.get_value() == 5);
   }
@@ -77,7 +79,7 @@ TEST_CASE("Test EventQueue")
   {
     queue.start();
     queue.raise_event(watcher, 6);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     queue.stop();
 
     queue.raise_event(watcher, 2);

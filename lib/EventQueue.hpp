@@ -67,6 +67,9 @@ namespace ascendancy
     virtual void register_link(const Base& subject, Slot slot) {}
     virtual void unregister_link(const Base& subject) {}
 
+    void raise_event(const Base& subject, DataStore data)
+    { raise_event_impl(subject, std::move(data)); }
+
     template <typename... Args>
     void raise_event(const Base& subject, Args&&... args)
     {
