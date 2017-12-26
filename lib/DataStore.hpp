@@ -36,6 +36,8 @@ namespace ascendancy
     public:
       virtual ~ContainerBase() = default;
 
+      virtual ContainerBase* clone() = 0;
+
       virtual void* get_ptr() = 0;
       virtual const void* get_ptr() const = 0;
     };
@@ -45,6 +47,8 @@ namespace ascendancy
     {
     public:
       Container(T value) : value_(std::move(value)) {}
+
+      ContainerBase* clone() override { return new Container<T>(value_); }
 
       void* get_ptr() override { return static_cast<void*>(&value_); }
 
@@ -56,6 +60,13 @@ namespace ascendancy
     };
 
   public:
+    DataStore() = default;
+    DataStore(const DataStore& other);
+    DataStore(DataStore&& other) noexcept;
+
+    DataStore& operator=(const DataStore& other);
+    DataStore& operator=(DataStore&& other);
+
     template <typename T>
     bool has_value() const
     { return mapping_.count(std::type_index(typeid(T))) == 1; }
@@ -95,6 +106,7 @@ namespace ascendancy
     const std::size_t index = mapping_.at(type_index);
     return *static_cast<const T*>(data_[index]->get_ptr());
   }
+
 
   template<typename T>
   void DataStore::unset()

@@ -38,6 +38,7 @@ set(HEADERS
   utils.hpp)
 
 set(SOURCES
+  DataStore.cpp
   serialisation.cpp
   utils.cpp)
 
