@@ -53,6 +53,7 @@ namespace ascendancy
     // Define convenience type for controller input
     using InputType = Vec<NIn>;
     using OutputType = Vec<NOut>;
+    using AlgorithmType = Algorithm<NIn, NOut>;
 
     ControlSystem(const std::string& log_name, const unsigned int frequency)
         : thread_running_(false), dirty_(false), frequency_(frequency)
