@@ -285,15 +285,8 @@ namespace ascendancy
       return;
     }
 
-    try {
-      std::lock_guard<std::mutex> lock(global_mutex_);
-      algorithms_.emplace_back(new T(std::forward<Args>(args)...));
-      algorithm_mapping_[id] = algorithms_.size() - 1;
-    }
-    catch (const std::bad_alloc& e) {
-      logger_->error("Unable to construct Algorithm instance: {}", e.what());
-      throw;
-    }
+    auto ptr = std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+    add_algorithm(id, std::move(ptr));
   }
 
 
@@ -307,9 +300,17 @@ namespace ascendancy
     }
 
     try {
-      std::lock_guard<std::mutex> lock(global_mutex_);
-      algorithms_.push_back(std::move(algorithm));
-      algorithm_mapping_[id] = algorithms_.size() - 1;
+      const bool overwrite = algorithm_mapping_.count(id) != 0;
+      const std::size_t idx =
+	overwrite ? algorithm_mapping_[id] : algorithms_.size();
+
+      if (overwrite) {
+	algorithms_[idx] = std::move(algorithm);
+      }
+      else {
+	algorithms_.push_back(std::move(algorithm));
+	algorithm_mapping_[id] = idx;
+      }
     }
     catch (const std::bad_alloc& e) {
       logger_->error("Unable to add Algorithm instance: {}", e.what());
