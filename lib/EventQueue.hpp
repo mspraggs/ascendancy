@@ -152,12 +152,21 @@ namespace ascendancy
       return;
     }
 
-    queue_size_ = 1;
+    const auto force_loop = queue_size_ == 0;
+
+    if (force_loop) {
+      queue_size_ = 1;
+    }
+
     running_ = false;
     queue_condition_.notify_one();
 
     if (queue_watcher_.joinable()) {
       queue_watcher_.join();
+    }
+
+    if (force_loop) {
+      queue_size_ = 0;
     }
   }
 
